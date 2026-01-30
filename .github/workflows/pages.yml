@@ -1,6 +1,6 @@
 name: Deploy to github pages
 
-run-on:
+runs-on:
   push:
     branches:
       - main
