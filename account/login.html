@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Rupnil.Codes — Login</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+  <div id="site-header"></div>
+  <script type="module" src="/script.js"></script>
+
+  <main class="container auth-container">
+    <h1>Login</h1>
+    <form id="login-form" class="auth-form">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" required>
+
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" required>
+
+      <button type="submit">Sign In</button>
+      <p id="error" class="error" role="alert" aria-live="polite"></p>
+    </form>
+
+    <p>Don't have an account? <a href="/account/signup.html">Sign up</a></p>
+  </main>
+
+  <script type="module">
+    import { signIn, onAuthState } from '/firebase.js';
+
+    const form = document.getElementById('login-form');
+    const err = document.getElementById('error');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      err.textContent = '';
+      const email = form.email.value.trim();
+      const password = form.password.value;
+
+      try {
+        await signIn(email, password);
+        window.location.href = '/';
+      } catch (error) {
+        err.textContent = error.message;
+      }
+    });
+
+    onAuthState((user) => {
+      if (user) window.location.href = '/account/dashboard.html';
+    });
+  </script>
+</body>

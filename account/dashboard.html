@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Rupnil.Codes — Dashboard</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+  <div id="site-header"></div>
+  <script type="module" src="/script.js"></script>
+
+  <main class="container" style="max-width: 960px; margin: 3rem auto;">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem;">
+      <h1>Dashboard</h1>
+      <div>
+        <span style="color:#bbb; margin-right:1rem;">Signed in as <strong id="user-email">—</strong></span>
+        <button id="signout-btn">Sign out</button>
+      </div>
+    </div>
+
+    <section class="section" aria-labelledby="overview-heading">
+      <h2 id="overview-heading">Overview</h2>
+      <p class="muted">Quick links and account summary.</p>
+
+      <div class="cards" style="margin-top:1rem;">
+        <div class="card">
+          <h3>Profile</h3>
+          <p>display profile info here.</p>
+          <p><a href="#">Edit profile</a></p>
+        </div>
+
+        <div class="card">
+          <h3>Projects</h3>
+          <p>list of your projects will appear here.</p>
+          <p><a href="#">View projects</a></p>
+        </div>
+
+        <div class="card">
+          <h3>Settings</h3>
+          <p>account settings and preferences.</p>
+          <p><a href="#">Open settings</a></p>
+        </div>
+
+        <div class="card">
+          <h3>Activity</h3>
+          <p>recent activity feed.</p>
+          <p><a href="#">View activity</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="extras-heading">
+      <h2 id="extras-heading">Extras</h2>
+      <ul>
+        <li>Placeholder: Invitations</li>
+        <li>Placeholder: Subscription / Billing</li>
+        <li>Placeholder: Help & Support</li>
+      </ul>
+    </section>
+  </main>
+
+  <script type="module">
+    import { signOutUser, onAuthState } from '/firebase.js';
+
+    const emailEl = document.getElementById('user-email');
+    const signoutBtn = document.getElementById('signout-btn');
+
+    onAuthState((user) => {
+      if (!user) {
+        window.location.href = '/account/login.html';
+      } else {
+        emailEl.textContent = user.email || 'User';
+      }
+    });
+
+    signoutBtn.addEventListener('click', async () => {
+      try {
+        await signOutUser();
+        window.location.href = '/';
+      } catch (err) {
+        alert('Sign out failed: ' + (err.message || err));
+      }
+    });
+  </script>
+</body>
+</html>
