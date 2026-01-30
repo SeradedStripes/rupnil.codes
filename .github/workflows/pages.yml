@@ -25,9 +25,11 @@ jobs:
   deploy-pages:
     needs: deploy
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
     permissions:
       pages: write
       id-token: write
     steps:
       - name: Deploy to Github Pages
-        uses: actions/deploy-pages@v1
+        uses: actions/deploy-pages@v4
