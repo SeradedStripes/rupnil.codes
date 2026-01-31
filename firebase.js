@@ -12,6 +12,7 @@ import {
   GithubAuthProvider,
   signInWithPopup
 } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -29,6 +30,48 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const auth = getAuth(app);
+const db = getFirestore(app);
+
+export async function requestAlias(alias) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Not logged in");
+
+  const aliasDoc = doc(db, "aliasRequests", user.uid);
+
+  await setDoc(aliasDoc, {
+    uid: user.uid,
+    alias: alias,
+    status: "pending",
+    createdAt: serverTimestamp()
+  });
+
+  console.log("Alias request sent!");
+} 
+
+export async function checkAliasStatus(alias) {
+  const aliasDoc = await getDoc(doc(db, "aliasRequests", alias));
+  if (!aliasDoc.exists()) return null;
+  return aliasDoc.data().status;
+}
+
+export async function ensureUserDoc(user) {
+  const u = user || auth.currentUser;
+  if (!u) throw new Error("Not logged in");
+
+  const userRef = doc(db, "users", u.uid);
+  const snap = await getDoc(userRef);
+  if (!snap.exists()) {
+    await setDoc(userRef, {
+      uid: u.uid,
+      email: u.email || null,
+      createdAt: serverTimestamp()
+    });
+  }
+
+  await setDoc(userRef, { lastSeen: serverTimestamp() }, { merge: true });
+
+  return true;
+}
 
 /**
  * Create a new user with email and password
@@ -60,7 +103,7 @@ export function signOutUser() {
  * Listen for auth state changes
  * @param {(user) => void} cb
  */
-export function onAuthState(cb) {
+export async function onAuthState(cb) {
   return onAuthStateChanged(auth, cb);
 }
 

@@ -30,6 +30,8 @@
           <p>list of your projects will appear here.</p>
           <p><a href="#">View projects</a></p>
         </div>
+      </div>
+      <div class="cards">
         <div class="card">
           <h3>Settings</h3>
           <p>account settings and preferences.</p>
@@ -39,6 +41,16 @@
           <h3>Activity</h3>
           <p>recent activity feed.</p>
           <p><a href="#">View activity</a></p>
+        </div>
+        <div class="card" id="alias-card">
+          <h3>Alias</h3>
+          <p>Request a public alias for your profile.</p>
+          <p>
+            <input id="alias-input" placeholder="desired-alias" />
+            <button id="alias-request-btn">Request Alias</button>
+            <button id="alias-check-btn">Check Status</button>
+          </p>
+          <p>Status: <span id="alias-status">—</span></p>
         </div>
       </div>
     </section>
@@ -54,16 +66,23 @@
   </main>
 
   <script type="module">
-    import { signOutUser, onAuthState } from '/firebase.js';
+    import { signOutUser, onAuthState, requestAlias, checkAliasStatus, ensureUserDoc } from '/firebase.js';
 
     const emailEl = document.getElementById('user-email');
     const signoutBtn = document.getElementById('signout-btn');
+
+    const aliasInput = document.getElementById('alias-input');
+    const aliasRequestBtn = document.getElementById('alias-request-btn');
+    const aliasCheckBtn = document.getElementById('alias-check-btn');
+    const aliasStatusEl = document.getElementById('alias-status');
 
     onAuthState((user) => {
       if (!user) {
         window.location.href = '/account/login.html';
       } else {
         emailEl.textContent = user.email || 'User';
+        // ensure the user record exists in Firestore (non-blocking)
+        ensureUserDoc(user).catch(err => console.error('ensureUserDoc failed:', err));
       }
     });
 
@@ -73,6 +92,35 @@
         window.location.href = '/';
       } catch (err) {
         alert('Sign out failed: ' + (err.message || err));
+      }
+    });
+
+    aliasRequestBtn.addEventListener('click', async () => {
+      const alias = aliasInput.value.trim();
+      if (!alias) return alert('Please enter an alias');
+      aliasRequestBtn.disabled = true;
+      try {
+        await requestAlias(alias);
+        alert('Alias request sent!');
+        aliasStatusEl.textContent = 'pending';
+      } catch (err) {
+        alert('Failed to request alias: ' + (err.message || err));
+      } finally {
+        aliasRequestBtn.disabled = false;
+      }
+    });
+
+    aliasCheckBtn.addEventListener('click', async () => {
+      const alias = aliasInput.value.trim();
+      if (!alias) return alert('Please enter an alias');
+      aliasCheckBtn.disabled = true;
+      try {
+        const status = await checkAliasStatus(alias);
+        aliasStatusEl.textContent = status || 'not found';
+      } catch (err) {
+        alert('Failed to check status: ' + (err.message || err));
+      } finally {
+        aliasCheckBtn.disabled = false;
       }
     });
   </script>
