@@ -35,7 +35,7 @@ export function initHeaderAccount(root = document) {
     if (!user) {
       account.innerHTML = '<a href="/account/login.html" class="header-section__btn header-signin">Sign in</a>';
     } else {
-      account.innerHTML = `<a href="/account/dashboard.html" class="header-section__btn header-account-btn" title="${user.email}"><span class="header-account-icon" aria-hidden="true">👤</span></a><button class="header-section__btn header-signout">Sign out</button>`;
+      account.innerHTML = `<a href="/account/dashboard.html" class="header-section__btn header-account-btn" title="${user.email}"><span aria-hidden="true"><img width="24" height="24" src="${user.photoURL}" alt="User Avatar"></span></a>`;
       const signoutBtn = account.querySelector('.header-signout');
       if (signoutBtn) {
         signoutBtn.addEventListener('click', async () => {
