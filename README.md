@@ -8,7 +8,7 @@ This Project is licensed under the MIT License
 
 ## Contributions
 
-Contributions are welcome!
+Contributions are welcome! (most especially to terms page)
 
 ## Approval
 
