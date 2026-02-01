@@ -72,3 +72,37 @@ export async function loadHeader() {
 }
 
 loadHeader();
+
+export function initFooter(root = document) {
+  const year = String(new Date().getFullYear());
+  const yearEl = root.querySelector('#footer-year');
+  if (yearEl) yearEl.textContent = year;
+  const yearLink = yearEl ? yearEl.closest('a') : root.querySelector('.footer-left a');
+  if (yearLink) {
+    yearLink.href = `https://en.wikipedia.org/wiki/${year}`;
+    yearLink.target = '_blank';
+    yearLink.rel = 'noopener noreferrer';
+    yearLink.setAttribute('aria-label', `Wikipedia page for ${year}`);
+  }
+}
+
+export async function loadFooter() {
+  const container = document.getElementById('site-footer');
+  if (!container) return;
+
+  if (container.innerHTML.trim() === '') {
+    try {
+      const res = await fetch('/footer.html');
+      if (!res.ok) throw new Error('Failed to fetch /footer.html: ' + res.status);
+      const html = await res.text();
+      container.innerHTML = html;
+    } catch (err) {
+      console.error('loadFooter error:', err);
+      return;
+    }
+  }
+
+  initFooter(container);
+}
+
+loadFooter();
