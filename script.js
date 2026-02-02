@@ -1,5 +1,3 @@
-import { onAuthState, signOutUser } from '/firebase.js';
-
 export function initHeader(root = document) {
   const toggle = root.querySelector('.header-section__toggle');
   const links = root.querySelector('.header-section__links');
@@ -30,25 +28,67 @@ export function initHeaderAccount(root = document) {
   const account = root.querySelector('#header-account');
   if (!account) return;
 
-  onAuthState((user) => {
-    if (!account) return;
-    if (!user) {
-      account.innerHTML = '<a href="/account/login.html" class="header-section__btn header-signin">Sign in</a>';
-    } else {
-      account.innerHTML = `<a href="/account/dashboard.html" class="header-section__btn header-account-btn" title="${user.email}"><span aria-hidden="true"><img width="24" height="24" src="${user.photoURL}" alt="User Avatar"></span></a>`;
-      const signoutBtn = account.querySelector('.header-signout');
-      if (signoutBtn) {
-        signoutBtn.addEventListener('click', async () => {
-          try {
-            await signOutUser();
-            window.location.href = '/';
-          } catch (err) {
-            alert('Sign out failed: ' + (err.message || err));
+  account.innerHTML = '<div class="header-account-skeleton"><span class="avatar-skeleton" aria-hidden="true"></span><span class="sr-only" aria-live="polite">Checking sign-in…</span></div>';
+
+  const setupAuth = async () => {
+    try {
+      const { onAuthState, signOutUser } = await import('/firebase/auth.js');
+      onAuthState((user) => {
+        if (!account) return;
+        const setContent = (el) => {
+          el.style.opacity = '0';
+          el.style.transition = 'opacity 220ms ease';
+          account.innerHTML = '';
+          account.appendChild(el);
+          requestAnimationFrame(() => { el.style.opacity = '1'; });
+        };
+
+        if (!user) {
+          const a = document.createElement('a');
+          a.href = '/account/login.html';
+          a.className = 'header-section__btn header-signin';
+          a.textContent = 'Sign in';
+          setContent(a);
+        } else {
+          const a = document.createElement('a');
+          a.href = '/account/dashboard.html';
+          a.className = 'header-section__btn header-account-btn';
+          a.title = user.email || '';
+          const span = document.createElement('span');
+          span.setAttribute('aria-hidden', 'true');
+          const img = document.createElement('img');
+          img.width = 24;
+          img.height = 24;
+          img.src = user.photoURL || '';
+          img.alt = 'User Avatar';
+          img.className = 'header-account-avatar';
+          span.appendChild(img);
+          a.appendChild(span);
+          setContent(a);
+
+          const signoutBtn = account.querySelector('.header-signout');
+          if (signoutBtn) {
+            signoutBtn.addEventListener('click', async () => {
+              try {
+                await signOutUser();
+                window.location.href = '/';
+              } catch (err) {
+                alert('Sign out failed: ' + (err.message || err));
+              }
+            });
           }
-        });
-      }
+        }
+      });
+    } catch (err) {
+      console.error('initHeaderAccount load error:', err);
     }
-  });
+  };
+
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(setupAuth, { timeout: 500 });
+  } else {
+    setTimeout(setupAuth, 200);
+  }
 }
 
 export async function loadHeader() {

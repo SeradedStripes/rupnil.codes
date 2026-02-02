@@ -99,8 +99,12 @@ li:before {
 .section-right { padding: 3rem 1rem; text-align: right; }
 .section-right h2 { font-size: 2.25rem; font-weight: 700; margin-bottom: 1rem; letter-spacing: 1.1px; } 
 .section-right p { max-width: 1000px; margin: 0 auto; color: var(--color-primary-hover); font-weight: 500; font-size: 1.1rem; }
-.cards { display: flex; gap: 1.8rem; justify-content: center; margin-top: 2rem; }
-.card { background: #222; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border-radius: 12px; padding: 1.8rem; min-width: 280px; max-width: 300; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: default; }
+
+.cards { display: flex; gap: 1.8rem; justify-content: center; margin-top: 2rem; flex-wrap: wrap; }
+.card { background: #222; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border-radius: 12px; padding: 1.8rem; min-width: 280px; max-width: 320px; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: default; }
+
+.card.codepedia { background: #546eca; box-shadow: 0 4px 12px #91a3e0;}
+
 .card:hover { transform: translateY(-8px); box-shadow: 0 14px 30px rgba(0,0,0,0.3); }
 .card p { font-weight: 400; color: var(--color-text-light); }
 footer { background: #111; color: #bbb; text-align: center; padding: 1.5rem 1rem; font-size: 0.9rem; user-select: none; }
@@ -143,6 +147,15 @@ footer { background: #111; color: #bbb; text-align: center; padding: 1.5rem 1rem
 .header-account-icon { font-size: 1.05rem; }
 .header-signout { background: transparent; border: none; padding: 8px 10px; cursor: pointer; }
 .header-section__btn.header-signin { margin-left: 0.5rem; }
+
+.header-account-skeleton { width: 36px; height: 36px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: #2b2f45; overflow: hidden; position: relative; }
+.avatar-skeleton { display: block; width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(90deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.08) 20%, rgba(255,255,255,0.05) 40%); position: relative; }
+.avatar-skeleton::before { content: ""; position: absolute; left: -40%; top: 0; width: 60%; height: 100%; background: linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.02) 100%); transform: translateX(0); animation: shimmer 1.1s linear infinite; }
+
+@keyframes shimmer { 0% { transform: translateX(-100%);} 100% { transform: translateX(200%);} }
+
+.header-account-avatar { border-radius: 999px; display: block; width: 24px; height: 24px; transition: opacity 220ms ease; }
+.header-section__btn.header-signin, .header-section__btn.header-account-btn { transition: opacity 220ms ease; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
 .oauth-buttons { display:flex; align-items:center; gap:0.5rem; margin-bottom: 1rem; flex-wrap:wrap; }
