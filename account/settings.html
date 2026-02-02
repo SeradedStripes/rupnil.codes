@@ -31,6 +31,12 @@
           <label for="email-input">Email</label>
           <input id="email-input" name="email" type="email" placeholder="you@example.com">
           <br>
+          <label for="avatar-input">Avatar</label> <br>
+          <input id="avatar-input" name="avatar" type="file" accept="image/*">
+          <button id="uploadBtn" class="btn">Upload</button>
+          <br>
+          <img id="userAvatar" src="default-avatar.png" style="width:100px; border-radius:50%;">
+          <br>
           <label for="new-password">New password</label>
           <input id="new-password" name="new-password" type="password" placeholder="Enter new password (min 6)">
           <br>
@@ -58,10 +64,16 @@
   </main>
 
   <script type="module">
-    import { updateProfile, updateEmail, updatePassword, deleteUser } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';
+    import { updateProfile, updateEmail, updatePassword, deleteUser,  } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';
+    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-storage.js';
 
     (async () => {
       const { onAuthState, signOutUser, auth } = await import('/firebase/auth.js');
+      const storage = getStorage();
+
+      const avatarInput = document.getElementById('avatar-input');
+      const uploadBtn = document.getElementById('uploadBtn');
+      const avatarDisplay = document.getElementById('userAvatar');
 
       const emailEl = document.getElementById('user-email');
       const displayNameEl = document.getElementById('user-displayname');
@@ -87,6 +99,7 @@
           displayNameEl.textContent = user.displayName || '—';
           displayNameInput.value = user.displayName || '';
           emailInput.value = user.email || '';
+          if (user.photoURL) avatarDisplay.src = user.photoURL;
         }
       });
 
@@ -195,6 +208,39 @@
           window.location.href = 'deleted.html';
         } catch (err) {
           alert('Delete account failed: ' + (err.message || err));
+        }
+      });
+
+      uploadBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const file = avatarInput.files[0];
+        const user = auth.currentUser;
+
+        if (!file) {
+          settingsMsg.textContent = 'Please select an image file first.';
+          settingsMsg.classList.remove('sr-only');
+          return;
+        }
+
+        uploadBtn.disabled = true;
+        uploadBtn.textContent = 'Uploading...';
+
+        try {
+          const avatarRef = ref(storage, `avatars/${user.uid}`);
+          const snapshot = await uploadBytes(avatarRef, file);
+          const photoURL = await getDownloadURL(snapshot.ref);
+          await updateProfile(user, { photoURL });
+
+          avatarDisplay.src = photoURL;
+          settingsMsg.textContent = 'Avatar uploaded and profile updated!';
+          settingsMsg.classList.remove('sr-only');
+        } catch (err) {
+          console.error(err);
+          settingsMsg.textContent = 'Upload failed: ' + err.message;
+          settingsMsg.classList.remove('sr-only');
+        } finally {
+          uploadBtn.disabled = false;
+          uploadBtn.textContent = 'Upload';
         }
       });
     })();
