@@ -60,7 +60,6 @@ export function initHeaderAccount(root = document) {
           img.width = 24;
           img.height = 24;
           img.src = user.photoURL || '';
-          img.alt = 'Acc';
           img.className = 'header-account-avatar';
           span.appendChild(img);
           a.appendChild(span);
