@@ -19,7 +19,7 @@
     <h1>Account Settings</h1>
 
     <div class="cards">
-      <div class="card">
+      <div class="card settings">
         <h3>Profile</h3>
         <p>Email: <strong id="user-email">—</strong></p>
         <p>Display name: <strong id="user-displayname">—</strong></p>
@@ -44,6 +44,8 @@
 
           <p id="settings-msg" class="sr-only" role="status" aria-live="polite"></p>
           <p class="small">Note: Changing email or password may require you to sign in again.</p>
+
+          <button type="button" id="delete-account-btn" class="btn">Delete Account</button>
         </form>
 
         <p><a href="dashboard.html">Back to dashboard</a></p>
@@ -56,7 +58,7 @@
   </main>
 
   <script type="module">
-    import { updateProfile, updateEmail, updatePassword } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';
+    import { updateProfile, updateEmail, updatePassword, deleteUser } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';
 
     (async () => {
       const { onAuthState, signOutUser, auth } = await import('/firebase/auth.js');
@@ -75,6 +77,7 @@
       const cancelBtn = document.getElementById('cancel-settings-btn');
       const settingsMsg = document.getElementById('settings-msg');
       const signoutBtn = document.getElementById('signout-btn');
+      const deleteAccountBtn = document.getElementById('delete-account-btn');
 
       onAuthState((user) => {
         if (!user) {
@@ -183,6 +186,15 @@
           window.location.href = '/';
         } catch (err) {
           alert('Sign out failed: ' + (err.message || err));
+        }
+      });
+
+      deleteAccountBtn.addEventListener('click', async () => {
+        try {
+          await deleteUser(auth.currentUser);
+          window.location.href = 'deleted.html';
+        } catch (err) {
+          alert('Delete account failed: ' + (err.message || err));
         }
       });
     })();

@@ -105,6 +105,8 @@ li:before {
 
 .card.codepedia { background: #546eca; box-shadow: 0 4px 12px #91a3e0;}
 
+.card.settings { max-width: 400px;}
+
 .card:hover { transform: translateY(-8px); box-shadow: 0 14px 30px rgba(0,0,0,0.3); }
 .card p { font-weight: 400; color: var(--color-text-light); }
 footer { background: #111; color: #bbb; text-align: center; padding: 1.5rem 1rem; font-size: 0.9rem; user-select: none; }
