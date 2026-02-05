@@ -6,13 +6,17 @@
   <link rel="stylesheet" href="/style.css">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="modulepreload" href="/script.js">
-  <link rel="modulepreload" href="/firebase/auth.js">
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://www.googleapis.com" crossorigin>
 </head>
 
 <body>
   <div id="site-header"></div>
+  <script>
+    if (!window.API_BASE && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+      window.API_BASE = 'https://api.rupnil.codes';
+    }
+  </script>
   <script type="module" src="/script.js"></script>
 
   <main class="section">
@@ -64,186 +68,34 @@
   </main>
 
   <script type="module">
-    import { updateProfile, updateEmail, updatePassword, deleteUser,  } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';
-    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-storage.js';
-
     (async () => {
-      const { onAuthState, signOutUser, auth } = await import('/firebase/auth.js');
-      const storage = getStorage();
-
-      const avatarInput = document.getElementById('avatar-input');
-      const uploadBtn = document.getElementById('uploadBtn');
-      const avatarDisplay = document.getElementById('userAvatar');
-
-      const emailEl = document.getElementById('user-email');
-      const displayNameEl = document.getElementById('user-displayname');
-
-      const displayNameInput = document.getElementById('display-name');
-      const emailInput = document.getElementById('email-input');
-      const newPasswordInput = document.getElementById('new-password');
-      const confirmPasswordInput = document.getElementById('confirm-password');
-
-      const settingsForm = document.getElementById('settings-form');
-      const editBtn = document.getElementById('edit-settings-btn');
-      const saveBtn = document.getElementById('save-settings-btn');
-      const cancelBtn = document.getElementById('cancel-settings-btn');
-      const settingsMsg = document.getElementById('settings-msg');
-      const signoutBtn = document.getElementById('signout-btn');
-      const deleteAccountBtn = document.getElementById('delete-account-btn');
-
-      onAuthState((user) => {
-        if (!user) {
-          window.location.href = '/account/login.html';
-        } else {
-          emailEl.textContent = user.email || 'User';
-          displayNameEl.textContent = user.displayName || '—';
-          displayNameInput.value = user.displayName || '';
-          emailInput.value = user.email || '';
-          if (user.photoURL) avatarDisplay.src = user.photoURL;
-        }
-      });
-
-      function enterEditMode() {
-        settingsMsg.textContent = '';
-        settingsMsg.classList.add('sr-only');
-        displayNameInput.value = displayNameEl.textContent === '—' ? '' : displayNameEl.textContent;
-        emailInput.value = emailEl.textContent === '—' ? '' : emailEl.textContent;
-        newPasswordInput.value = '';
-        confirmPasswordInput.value = '';
-        settingsForm.style.display = 'block';
-
-        const dispP = displayNameEl.parentElement;
-        if (dispP) dispP.style.display = 'none';
-        const emailP = emailEl.parentElement;
-        if (emailP) emailP.style.display = 'none';
-        editBtn.style.display = 'none';
-        if (saveBtn) saveBtn.disabled = false;
-        displayNameInput.focus();
-      }
-
-      function exitEditMode(reset = false) {
-        settingsForm.style.display = 'none';
-        const dispP = displayNameEl.parentElement;
-        if (dispP) dispP.style.display = '';
-        const emailP = emailEl.parentElement;
-        if (emailP) emailP.style.display = '';
-        editBtn.style.display = '';
-        if (reset) {
-          displayNameInput.value = displayNameEl.textContent === '—' ? '' : displayNameEl.textContent;
-          emailInput.value = emailEl.textContent === '—' ? '' : emailEl.textContent;
-        }
-        if (editBtn) editBtn.focus();
-      }
-
-      if (editBtn) editBtn.addEventListener('click', enterEditMode);
-      if (cancelBtn) cancelBtn.addEventListener('click', () => exitEditMode(true));
-
-      if (saveBtn) saveBtn.addEventListener('click', async () => {
-        settingsMsg.textContent = '';
-        settingsMsg.classList.add('sr-only');
-
-        const newDisplayName = displayNameInput.value.trim();
-        const newEmail = emailInput.value.trim();
-        const newPassword = newPasswordInput.value;
-        const confirmPassword = confirmPasswordInput.value;
-
-        if (newPassword && newPassword.length < 6) {
-          settingsMsg.textContent = 'Password must be at least 6 characters.';
-          settingsMsg.classList.remove('sr-only');
-          return;
-        }
-        if (newPassword && newPassword !== confirmPassword) {
-          settingsMsg.textContent = 'Passwords do not match.';
-          settingsMsg.classList.remove('sr-only');
-          return;
-        }
-
-        const ops = [];
-        if (newDisplayName && newDisplayName !== displayNameEl.textContent) {
-          ops.push(updateProfile(auth.currentUser, { displayName: newDisplayName }));
-        }
-        if (newEmail && newEmail !== emailEl.textContent) {
-          ops.push(updateEmail(auth.currentUser, newEmail));
-        }
-        if (newPassword) {
-          ops.push(updatePassword(auth.currentUser, newPassword));
-        }
-
-        if (ops.length === 0) {
-          settingsMsg.textContent = 'No changes to save.';
-          settingsMsg.classList.remove('sr-only');
-          exitEditMode(true);
-          return;
-        }
-
-        saveBtn.disabled = true;
-        try {
-          await Promise.all(ops);
-
-          displayNameEl.textContent = newDisplayName || '—';
-          emailEl.textContent = newEmail || '—';
-          settingsMsg.textContent = 'Settings updated.';
-          settingsMsg.classList.remove('sr-only');
-          exitEditMode(false);
-        } catch (err) {
-          settingsMsg.textContent = 'Update failed: ' + (err.message || err);
-          settingsMsg.classList.remove('sr-only');
-        } finally {
-          saveBtn.disabled = false;
-        }
-      });
+      const { clearTokens, getRefreshToken } = await import('/assets/hca.js');
 
       signoutBtn.addEventListener('click', async () => {
         try {
-          await signOutUser();
-          window.location.href = '/';
+          const rt = getRefreshToken();
+          if (rt) {
+            await fetch('/auth/logout', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ refresh_token: rt }) });
+          }
         } catch (err) {
-          alert('Sign out failed: ' + (err.message || err));
+          console.error('Logout failed:', err);
+        } finally {
+          clearTokens();
+          window.location.href = '/';
         }
       });
 
       deleteAccountBtn.addEventListener('click', async () => {
-        try {
-          await deleteUser(auth.currentUser);
-          window.location.href = 'deleted.html';
-        } catch (err) {
-          alert('Delete account failed: ' + (err.message || err));
-        }
+        alert('Account deletion is not supported via the API yet.');
       });
 
-      uploadBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        const file = avatarInput.files[0];
-        const user = auth.currentUser;
+      // Profile editing not supported yet
+      if (editBtn) editBtn.addEventListener('click', () => alert('Profile editing is not supported via this API yet'));
+      if (saveBtn) saveBtn.addEventListener('click', () => alert('Profile editing is not supported via this API yet'));
 
-        if (!file) {
-          settingsMsg.textContent = 'Please select an image file first.';
-          settingsMsg.classList.remove('sr-only');
-          return;
-        }
-
-        uploadBtn.disabled = true;
-        uploadBtn.textContent = 'Uploading...';
-
-        try {
-          const avatarRef = ref(storage, `avatars/${user.uid}`);
-          const snapshot = await uploadBytes(avatarRef, file);
-          const photoURL = await getDownloadURL(snapshot.ref);
-          await updateProfile(user, { photoURL });
-
-          avatarDisplay.src = photoURL;
-          settingsMsg.textContent = 'Avatar uploaded and profile updated!';
-          settingsMsg.classList.remove('sr-only');
-        } catch (err) {
-          console.error(err);
-          settingsMsg.textContent = 'Upload failed: ' + err.message;
-          settingsMsg.classList.remove('sr-only');
-        } finally {
-          uploadBtn.disabled = false;
-          uploadBtn.textContent = 'Upload';
-        }
-      });
     })();
+    // Note: Legacy firebase-driven features and form handlers removed. 
+    // Profile editing, avatar upload, and deletion are not supported by the API yet.
   </script>
 
   <div id="site-footer"></div>

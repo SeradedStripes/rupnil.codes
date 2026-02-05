@@ -5,13 +5,21 @@
   <link rel="stylesheet" href="/style.css">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="modulepreload" href="/script.js">
-  <link rel="modulepreload" href="/firebase/auth.js">
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://www.googleapis.com" crossorigin>
 </head>
+<!--
+  If your API runs on a different origin than this frontend, set `window.API_BASE`:
+  <script>window.API_BASE = 'https://api.example.com'</script>
+-->
 
 <body>
   <div id="site-header"></div>
+  <script>
+    if (!window.API_BASE && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+      window.API_BASE = 'https://api.rupnil.codes';
+    }
+  </script>
   <script type="module" src="/script.js"></script>
   
   <div class="container">
@@ -19,12 +27,9 @@
       <aside class="oauth-card auth-container oauth-column" aria-label="Sign up options">
         <h2 class="oauth-card__title">Quick sign-up</h2>
         <div class="oauth-buttons">
-          <button id="google-btn" type="button" class="oauth-btn" aria-label="Sign up with Google">
-            <span class="oauth-icon"><img src="/assets/google.svg" alt="Google logo"/></span>
-          </button>
-
-          <button id="github-btn" type="button" class="oauth-btn" aria-label="Sign up with GitHub">
-            <span class="oauth-icon"><img src="/assets/github.svg" alt="GitHub logo"/></span>
+          <button id="hca-btn" type="button" class="oauth-btn" aria-label="Sign up with Hack Club">
+            <span class="oauth-icon"><img src="/assets/hackclub.svg" alt="Hack Club logo"/></span>
+            <span>Sign up with Hack Club</span>
           </button>
         </div>
       </aside>
@@ -49,64 +54,30 @@
   </div>
 
   <script type="module">
-    let authMod;
-    const ensureAuth = async () => {
-      if (!authMod) authMod = await import('/firebase/auth.js');
-      return authMod;
-    };
+    import { openHcaPopup, saveTokens, getJwt } from '/assets/hca.js';
 
     const form = document.getElementById('signup-form');
     const err = document.getElementById('error');
-    const googleBtn = document.getElementById('google-btn');
-    const githubBtn = document.getElementById('github-btn');
+    const hcaBtn = document.getElementById('hca-btn');
 
-    form.addEventListener('submit', async (e) => {
+    form.addEventListener('submit', (e) => {
       e.preventDefault();
-      err.textContent = '';
-      const { signUp } = await ensureAuth();
-      const email = form.email.value.trim();
-      const password = form.password.value;
+      err.textContent = 'Email/password sign-up is not supported; please use Hack Club.';
+    });
 
+    hcaBtn.addEventListener('click', async () => {
+      err.textContent = '';
       try {
-        await signUp(email, password);
+        const data = await openHcaPopup();
+        saveTokens(data.jwt, data.refresh_token);
         window.location.href = '/account/dashboard.html';
-      } catch (error) {
-        err.textContent = error.message;
+      } catch (e) {
+        err.textContent = e.message || 'Authentication failed';
       }
     });
 
-    googleBtn.addEventListener('click', async () => {
-      err.textContent = '';
-      const { signInWithGoogle } = await ensureAuth();
-      try {
-        await signInWithGoogle();
-        window.location.href = '/account/dashboard.html';
-      } catch (error) {
-        err.textContent = error.message || 'Google sign-in failed.';
-      }
-    });
+    if (getJwt()) window.location.href = '/account/dashboard.html';
 
-    githubBtn.addEventListener('click', async () => {
-      err.textContent = '';
-      const { signInWithGithub } = await ensureAuth();
-      try {
-        await signInWithGithub();
-        window.location.href = '/account/dashboard.html';
-      } catch (error) {
-        err.textContent = error.message || 'GitHub sign-in failed.';
-      }
-    });
-
-    const setupAuthCheck = async () => {
-      const { onAuthState } = await ensureAuth();
-      onAuthState((user) => {
-        if (user) window.location.href = '/account/dashboard.html';
-      });
-    };
-
-    if ('requestIdleCallback' in window) requestIdleCallback(setupAuthCheck, { timeout: 500 });
-    else setTimeout(setupAuthCheck, 200);
-  </script>
 
   <div id="site-footer"></div>
 </body>
