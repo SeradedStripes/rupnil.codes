@@ -12,7 +12,6 @@
 <body>
   <div id="site-header"></div>
   <script>
-    // auto-set API base for GH Pages (unless overridden or running on localhost)
     if (!window.API_BASE && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
       window.API_BASE = 'https://api.rupnil.codes';
     }
@@ -31,7 +30,7 @@
         </div>
       </aside>
 
-      <main class="auth-card auth-container">
+      <main class="auth-card auth-container" style="display: none;">
         <h1>Login</h1>
 
         <form id="login-form" class="auth-form">

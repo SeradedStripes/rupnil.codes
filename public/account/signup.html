@@ -8,11 +8,6 @@
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://www.googleapis.com" crossorigin>
 </head>
-<!--
-  If your API runs on a different origin than this frontend, set `window.API_BASE`:
-  <script>window.API_BASE = 'https://api.example.com'</script>
--->
-
 <body>
   <div id="site-header"></div>
   <script>
@@ -77,6 +72,8 @@
     });
 
     if (getJwt()) window.location.href = '/account/dashboard.html';
+
+  </script>
 
 
   <div id="site-footer"></div>

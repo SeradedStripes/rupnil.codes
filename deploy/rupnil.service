@@ -1,0 +1,11 @@
+[Unit]
+Description=rupnil.codes Rust Server
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/rupnil_server
+Restart=on-failure
+User=www-data
+
+[Install]
+WantedBy=multi-user.target
