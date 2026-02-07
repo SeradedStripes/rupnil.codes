@@ -107,7 +107,6 @@ export async function loadHeader() {
   }
 
   initHeader(container);
-  initHeaderAccount(container);
 }
 
 loadHeader();
